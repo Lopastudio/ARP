@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ARP Tile Editor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #c0c0c0;
+    font-family: Tahoma, Verdana, Arial, sans-serif;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    height: 100vh;
+    padding: 16px;
+  }
+
+  #app {
+    background: #d4d0c8;
+    border: 2px solid #808080;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    width: 100%;
+    max-width: 1400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #ece9d8;
+    border: 1px solid #808080;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    padding: 6px;
+  }
+
+  label { font-size: 13px; color: black; }
+  .group-label { font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+
+  button, .tool-btn, .ctrl-btn {
+    background: #d4d0c8;
+    border: 2px solid #fff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    font-size: 13px;
+    padding: 4px 10px;
+    min-width: 70px;
+    cursor: pointer;
+  }
+
+  button:active, .tool-btn:active, .ctrl-btn:active {
+    border: 2px solid #404040;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+  }
+
+  .tool-btn.active {
+    background: #c0c0c0;
+    border: 2px inset #808080;
+  }
+
+  .size-input {
+    width: 60px;
+    height: 26px;
+    background: white;
+    border: 2px inset #808080;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .palette-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 36px);
+    gap: 6px;
+    max-width: 300px;
+  }
+
+  .tile-btn {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #404040;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .tile-btn.selected { border: 2px inset #000; }
+
+  .tip {
+    display: none;
+    position: absolute;
+    bottom: 42px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: yellow;
+    color: black;
+    border: 1px solid black;
+    font-size: 11px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .tile-btn:hover .tip { display: block; }
+
+  #grid-wrap {
+    flex: 1;
+    background: #808080;
+    border: 2px inset #000;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    background: #000;
+  }
+
+  #output {
+    background: black;
+    color: #00ff00;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    border: 2px inset #808080;
+    padding: 8px;
+    max-height: 100px;
+    overflow: auto;
+  }
+
+  .sep { color: #404040; }
+
+  #file-input { display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="palette-area"></div>
+
+  <div class="row" style="margin-top:10px;">
+    <span style="font-size:13px;">Tool:</span>
+    <button class="tool-btn active" id="tool-pencil" title="Paint single tiles">Pencil</button>
+    <button class="tool-btn" id="tool-fill" title="Flood fill connected area">Fill</button>
+    <button class="tool-btn" id="tool-rect-fill" title="Draw filled rectangle">Rect Fill</button>
+    <button class="tool-btn" id="tool-rect-border" title="Draw rectangle border only">Rect Border</button>
+    <button class="tool-btn" id="tool-erase" title="Erase to tile 0">Erase</button>
+  </div>
+
+  <div class="row">
+    <label>W</label><input class="size-input" type="number" id="inp-w" value="20" min="2" max="256">
+    <label>H</label><input class="size-input" type="number" id="inp-h" value="15" min="2" max="256">
+    <button class="ctrl-btn" id="btn-resize">Resize</button>
+    <span class="sep">|</span>
+    <button class="ctrl-btn" id="btn-fill-all">Fill all</button>
+    <button class="ctrl-btn" id="btn-clear">Clear</button>
+    <span class="sep">|</span>
+    <label>Zoom</label><input class="size-input" type="number" id="inp-zoom" value="32" min="8" max="64" step="4">
+    <span class="sep">|</span>
+    <button class="ctrl-btn" id="btn-import">Import .dat</button>
+    <input type="file" id="file-input" accept=".dat,.txt">
+    <button class="ctrl-btn" id="btn-save">Save .dat</button>
+    <button class="ctrl-btn" id="copy-btn">Copy .dat</button>
+  </div>
+
+  <div id="grid-wrap"><canvas id="c"></canvas></div>
+  <div id="output"></div>
+</div>
+
+<script>
+  const TILES = [
+    { id: 0,  name: 'GRASS',      color: '#64B450' },
+    { id: 1,  name: 'DIRT',       color: '#A0724A' },
+    { id: 2,  name: 'CONCRETE',   color: '#B0ACA4' },
+    { id: 3,  name: 'BRICK',      color: '#C89878' },
+    { id: 4,  name: 'FLOOR_WOOD', color: '#C89050' },
+    { id: 5,  name: 'STONE',      color: '#888780' },
+    { id: 6,  name: 'FLOOR_PVC',  color: '#D8D4C8' },
+    { id: 7,  name: 'DOOR',       color: '#7A4818' },
+    { id: 8,  name: 'SPAWN',      color: '#40E080' },
+    { id: 9,  name: 'VOID',       color: '#080808' },
+    { id: 10, name: 'END',        color: '#E0C000' },
+    { id: 11, name: 'BOOBYTRAP',  color: '#E04040' },
+    { id: 12, name: 'LAVA',       color: '#CC3300' },
+  ];
+
+  let COLS = 20, ROWS = 15, CELL = 32;
+  let selectedTile = 0, currentTool = 'pencil';
+  let painting = false;
+  let rectStart = null;
+  let mapSnapshot = null;
+  let map = [];
+
+  function initMap(w, h) {
+    map = [];
+    for (let r = 0; r < h; r++) map.push(new Array(w).fill(0));
+  }
+
+  function resizeMap(nw, nh) {
+    const old = map; map = [];
+    for (let r = 0; r < nh; r++) {
+      const row = [];
+      for (let c = 0; c < nw; c++) row.push(old[r] && old[r][c] !== undefined ? old[r][c] : 0);
+      map.push(row);
+    }
+    COLS = nw; ROWS = nh;
+    document.getElementById('inp-w').value = nw;
+    document.getElementById('inp-h').value = nh;
+  }
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  function drawCell(r, c, tid) {
+    ctx.fillStyle = TILES[tid] ? TILES[tid].color : '#ff00ff';
+    ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(c * CELL + 0.25, r * CELL + 0.25, CELL - 0.5, CELL - 0.5);
+  }
+
+  function draw() {
+    canvas.width = COLS * CELL; canvas.height = ROWS * CELL;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) drawCell(r, c, map[r][c]);
+  }
+
+  function drawPreview(r0, c0, r1, c1) {
+    draw();
+    const minR = Math.min(r0, r1), maxR = Math.max(r0, r1), minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
+    ctx.fillStyle = TILES[currentTool === 'erase' ? 0 : selectedTile].color + '99';
+    if (currentTool === 'rect-fill') {
+      ctx.fillRect(minC * CELL, minR * CELL, (maxC - minC + 1) * CELL, (maxR - minR + 1) * CELL);
+    } else {
+      for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
+        if (r === minR || r === maxR || c === minC || c === maxC)
+          ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+      }
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minC * CELL, minR * CELL, (maxC - minC + 1) * CELL, (maxR - minR + 1) * CELL);
+  }
+
+  function getCell(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { r: Math.floor((e.clientY - rect.top) / CELL), c: Math.floor((e.clientX - rect.left) / CELL) };
+  }
+
+  function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+  function floodFill(sr, sc, target, replace) {
+    if (target === replace) return;
+    const stack = [[sr, sc]];
+    while (stack.length) {
+      const [r, c] = stack.pop();
+      if (!inBounds(r, c) || map[r][c] !== target) continue;
+      map[r][c] = replace;
+      stack.push([r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]);
+    }
+  }
+
+  function applyRect(r0, c0, r1, c1, filled, tid) {
+    const minR = Math.min(r0, r1), maxR = Math.max(r0, r1), minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
+    for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
+      if (filled || r === minR || r === maxR || c === minC || c === maxC) map[r][c] = tid;
+    }
+  }
+
+  canvas.style.cursor = 'crosshair';
+
+  canvas.addEventListener('mousedown', e => {
+    const { r, c } = getCell(e);
+    if (!inBounds(r, c)) return;
+    painting = true;
+    if (currentTool === 'pencil' || currentTool === 'erase') {
+      map[r][c] = currentTool === 'erase' ? 0 : selectedTile;
+      drawCell(r, c, map[r][c]);
+      updateOutput();
+    } else if (currentTool === 'fill') {
+      floodFill(r, c, map[r][c], selectedTile);
+      draw(); updateOutput();
+    } else {
+      rectStart = { r, c };
+      mapSnapshot = map.map(row => [...row]);
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (!painting) return;
+    const { r, c } = getCell(e);
+    if (!inBounds(r, c)) return;
+    if (currentTool === 'pencil' || currentTool === 'erase') {
+      const tid = currentTool === 'erase' ? 0 : selectedTile;
+      if (map[r][c] !== tid) { map[r][c] = tid; drawCell(r, c, tid); updateOutput(); }
+    } else if (rectStart) {
+      drawPreview(rectStart.r, rectStart.c, r, c);
+    }
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (!painting) return;
+    painting = false;
+    if (rectStart) {
+      const { r, c } = getCell(e);
+      const tid = currentTool === 'erase' ? 0 : selectedTile;
+      map = mapSnapshot.map(row => [...row]);
+      applyRect(rectStart.r, rectStart.c,
+        Math.max(0, Math.min(ROWS - 1, r)),
+        Math.max(0, Math.min(COLS - 1, c)),
+        currentTool === 'rect-fill', tid);
+      rectStart = null; mapSnapshot = null;
+      draw(); updateOutput();
+    }
+  });
+
+  // ── .dat format: "WIDTH HEIGHT\ntile tile tile...\n..." ──────────────────
+  function buildDat() {
+    const rows = map.map(row => row.join(' ')).join('\n');
+    return `${COLS} ${ROWS}\n${rows}`;
+  }
+
+  function updateOutput() {
+    document.getElementById('output').textContent = buildDat();
+  }
+
+  // ── Import .dat ──────────────────────────────────────────────────────────
+  document.getElementById('btn-import').onclick = () => {
+    document.getElementById('file-input').click();
+  };
+
+  document.getElementById('file-input').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target.result.trim();
+      const nums = text.split(/\s+/).map(Number);
+      if (nums.length < 2) { alert('Invalid .dat file'); return; }
+      const w = nums[0], h = nums[1];
+      if (isNaN(w) || isNaN(h) || w < 2 || h < 2 || w > 256 || h > 256) {
+        alert(`Invalid dimensions: ${w}x${h}`); return;
+      }
+      if (nums.length < 2 + w * h) {
+        alert(`Expected ${w * h} tiles, got ${nums.length - 2}`); return;
+      }
+      map = [];
+      for (let r = 0; r < h; r++) {
+        const row = [];
+        for (let c = 0; c < w; c++) {
+          const v = nums[2 + r * w + c];
+          row.push((isNaN(v) || v < 0 || v >= TILES.length) ? 0 : v);
+        }
+        map.push(row);
+      }
+      COLS = w; ROWS = h;
+      document.getElementById('inp-w').value = w;
+      document.getElementById('inp-h').value = h;
+      draw(); updateOutput();
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // allow re-importing same file
+  };
+
+  // ── Save .dat ────────────────────────────────────────────────────────────
+  document.getElementById('btn-save').onclick = () => {
+    const blob = new Blob([buildDat()], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'level.dat';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // ── Copy .dat ────────────────────────────────────────────────────────────
+  document.getElementById('copy-btn').onclick = () => {
+    navigator.clipboard.writeText(buildDat()).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy .dat', 1500);
+    });
+  };
+
+  // ── Tool buttons ─────────────────────────────────────────────────────────
+  const tools = ['pencil', 'fill', 'rect-fill', 'rect-border', 'erase'];
+  tools.forEach(t => {
+    document.getElementById('tool-' + t).onclick = () => {
+      currentTool = t;
+      tools.forEach(x => document.getElementById('tool-' + x).classList.remove('active'));
+      document.getElementById('tool-' + t).classList.add('active');
+      canvas.style.cursor = t === 'erase' ? 'cell' : 'crosshair';
+    };
+  });
+
+  // ── Grid controls ─────────────────────────────────────────────────────────
+  document.getElementById('btn-resize').onclick = () => {
+    const w = Math.min(256, Math.max(2, parseInt(document.getElementById('inp-w').value) || 20));
+    const h = Math.min(256, Math.max(2, parseInt(document.getElementById('inp-h').value) || 15));
+    resizeMap(w, h); draw(); updateOutput();
+  };
+  document.getElementById('btn-fill-all').onclick = () => {
+    for (let r = 0; r < ROWS; r++) map[r].fill(selectedTile);
+    draw(); updateOutput();
+  };
+  document.getElementById('btn-clear').onclick = () => {
+    for (let r = 0; r < ROWS; r++) map[r].fill(0);
+    draw(); updateOutput();
+  };
+  document.getElementById('inp-zoom').oninput = e => {
+    CELL = Math.min(64, Math.max(8, parseInt(e.target.value) || 32));
+    draw();
+  };
+
+  // ── Palette ───────────────────────────────────────────────────────────────
+  const pa = document.getElementById('palette-area');
+  const lbl = document.createElement('div'); lbl.className = 'group-label'; lbl.textContent = 'Tiles'; pa.appendChild(lbl);
+  const wrap = document.createElement('div'); wrap.className = 'palette-wrap'; pa.appendChild(wrap);
+  TILES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tile-btn' + (t.id === 0 ? ' selected' : '');
+    btn.style.background = t.color;
+    btn.innerHTML = `<span class="tip">${t.name}</span>`;
+    btn.onclick = () => {
+      selectedTile = t.id;
+      document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    wrap.appendChild(btn);
+  });
+
+  initMap(COLS, ROWS); draw(); updateOutput();
+</script>
+</body>
+</html>
