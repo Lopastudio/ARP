@@ -1,0 +1,38 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c99",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": "${workspaceFolder}/build/linux/compile_commands.json",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/linux/_deps/raylib-src/src"
+            ]
+        },
+        {
+            "name": "Windows (MinGW cross)",
+            "compilerPath": "/usr/bin/x86_64-w64-mingw32-gcc",
+            "cStandard": "c99",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": "${workspaceFolder}/build/windows/compile_commands.json",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/windows/_deps/raylib-src/src"
+            ]
+        },
+        {
+            "name": "Win32",
+            "compilerPath": "cl.exe",
+            "cStandard": "c99",
+            "intelliSenseMode": "windows-msvc-x64",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/linux/_deps/raylib-src/src",
+                "${workspaceFolder}/build/windows/_deps/raylib-src/src"
+            ]
+        }
+    ],
+    "version": 4
+}
