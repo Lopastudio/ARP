@@ -1,445 +1,1466 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>ARP Tile Editor</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <title>ARP Tile Editor — Enhanced</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    background: #c0c0c0;
-    font-family: Tahoma, Verdana, Arial, sans-serif;
-    font-size: 14px;
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    height: 100vh;
-    padding: 16px;
-  }
+    body {
+      background: #c0c0c0;
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+      font-size: 13px;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  #app {
-    background: #d4d0c8;
-    border: 2px solid #808080;
-    border-right-color: #fff;
-    border-bottom-color: #fff;
-    width: 100%;
-    max-width: 1400px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-  }
+    #app {
+      background: #d4d0c8;
+      border: 2px solid #808080;
+      border-right-color: #fff;
+      border-bottom-color: #fff;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-  .row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    background: #ece9d8;
-    border: 1px solid #808080;
-    border-right-color: #fff;
-    border-bottom-color: #fff;
-    padding: 6px;
-  }
+    /* ── Top toolbar ── */
+    #toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      background: #d4d0c8;
+      border-bottom: 2px solid #808080;
+      padding: 4px 6px;
+      flex-shrink: 0;
+    }
 
-  label { font-size: 13px; color: black; }
-  .group-label { font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+    .tb-group {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 5px;
+      border-right: 1px solid #808080;
+    }
 
-  button, .tool-btn, .ctrl-btn {
-    background: #d4d0c8;
-    border: 2px solid #fff;
-    border-right-color: #404040;
-    border-bottom-color: #404040;
-    font-size: 13px;
-    padding: 4px 10px;
-    min-width: 70px;
-    cursor: pointer;
-  }
+    .tb-group:last-child {
+      border-right: none;
+    }
 
-  button:active, .tool-btn:active, .ctrl-btn:active {
-    border: 2px solid #404040;
-    border-right-color: #fff;
-    border-bottom-color: #fff;
-  }
+    .tb-label {
+      font-size: 10px;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 2px;
+    }
 
-  .tool-btn.active {
-    background: #c0c0c0;
-    border: 2px inset #808080;
-  }
+    button,
+    .tool-btn {
+      background: #d4d0c8;
+      border: 2px solid #fff;
+      border-right-color: #404040;
+      border-bottom-color: #404040;
+      font-size: 12px;
+      padding: 3px 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
 
-  .size-input {
-    width: 60px;
-    height: 26px;
-    background: white;
-    border: 2px inset #808080;
-    text-align: center;
-    font-size: 13px;
-  }
+    button:active,
+    .tool-btn:active {
+      border: 2px solid #404040;
+      border-right-color: #fff;
+      border-bottom-color: #fff;
+    }
 
-  .palette-wrap {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 36px);
-    gap: 6px;
-    max-width: 300px;
-  }
+    .tool-btn.active {
+      background: #b0b0a8;
+      border: 2px inset #808080;
+    }
 
-  .tile-btn {
-    width: 36px;
-    height: 36px;
-    border: 2px solid #404040;
-    border-right-color: #fff;
-    border-bottom-color: #fff;
-    position: relative;
-    cursor: pointer;
-  }
+    button:disabled {
+      color: #888;
+      cursor: default;
+    }
 
-  .tile-btn.selected { border: 2px inset #000; }
+    .num-input {
+      width: 52px;
+      height: 22px;
+      background: white;
+      border: 2px inset #808080;
+      text-align: center;
+      font-size: 12px;
+      font-family: Tahoma;
+    }
 
-  .tip {
-    display: none;
-    position: absolute;
-    bottom: 42px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: yellow;
-    color: black;
-    border: 1px solid black;
-    font-size: 11px;
-    padding: 2px 6px;
-    white-space: nowrap;
-    z-index: 10;
-  }
+    /* ── Main layout ── */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
 
-  .tile-btn:hover .tip { display: block; }
+    /* ── Left panel ── */
+    #left-panel {
+      width: 180px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #808080;
+      background: #d4d0c8;
+      overflow: hidden;
+    }
 
-  #grid-wrap {
-    flex: 1;
-    background: #808080;
-    border: 2px inset #000;
-    padding: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: auto;
-  }
+    .panel-header {
+      background: #000080;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 6px;
+    }
 
-  canvas {
-    display: block;
-    image-rendering: pixelated;
-    background: #000;
-  }
+    /* Palette */
+    #palette-wrap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      padding: 6px;
+      overflow-y: auto;
+    }
 
-  #output {
-    background: black;
-    color: #00ff00;
-    font-family: "Courier New", monospace;
-    font-size: 12px;
-    border: 2px inset #808080;
-    padding: 8px;
-    max-height: 100px;
-    overflow: auto;
-  }
+    .tile-btn {
+      width: 32px;
+      height: 32px;
+      border: 2px solid #404040;
+      border-right-color: #fff;
+      border-bottom-color: #fff;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
 
-  .sep { color: #404040; }
+    .tile-btn.selected {
+      border: 2px inset #000;
+      outline: 2px solid #ff0;
+    }
 
-  #file-input { display: none; }
-</style>
+    .tile-tip {
+      display: none;
+      position: fixed;
+      background: #ffffe1;
+      color: black;
+      border: 1px solid black;
+      font-size: 10px;
+      padding: 2px 5px;
+      white-space: nowrap;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    /* Layer list */
+    #layer-list {
+      padding: 4px;
+      flex-shrink: 0;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 4px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .layer-row.active {
+      background: #000080;
+      color: white;
+    }
+
+    .layer-row input[type=checkbox] {
+      cursor: pointer;
+    }
+
+    .layer-name {
+      flex: 1;
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .layer-opacity {
+      width: 36px;
+      height: 16px;
+      background: white;
+      border: 1px inset #808080;
+      text-align: center;
+      font-size: 10px;
+      font-family: Tahoma;
+    }
+
+    /* Mini-map */
+    #minimap-wrap {
+      padding: 4px;
+      flex-shrink: 0;
+    }
+
+    #minimap {
+      border: 2px inset #808080;
+      display: block;
+      cursor: crosshair;
+      image-rendering: pixelated;
+      width: 168px;
+      height: 112px;
+      background: #000;
+    }
+
+    /* Stamp */
+    #stamp-section {
+      padding: 4px 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── Canvas area ── */
+    #canvas-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #viewport {
+      flex: 1;
+      overflow: hidden;
+      background: #808080;
+      border: 2px inset #000;
+      position: relative;
+      cursor: crosshair;
+    }
+
+    #canvas-container {
+      position: absolute;
+      transform-origin: 0 0;
+    }
+
+    canvas#c {
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    /* Selection overlay */
+    #sel-overlay {
+      position: absolute;
+      pointer-events: none;
+      border: 2px dashed #fff;
+      box-shadow: 0 0 0 1px #000;
+      display: none;
+      z-index: 5;
+    }
+
+    /* ── Status bar ── */
+    #statusbar {
+      display: flex;
+      gap: 10px;
+      background: #d4d0c8;
+      border-top: 2px solid #808080;
+      padding: 3px 8px;
+      font-size: 11px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    #statusbar span {
+      color: #333;
+    }
+
+    #status-pos {
+      font-weight: bold;
+      color: #000080;
+    }
+
+    #status-tile {}
+
+    #status-msg {
+      flex: 1;
+      text-align: right;
+      color: #555;
+    }
+
+    /* ── Output ── */
+    #output-area {
+      flex-shrink: 0;
+      border-top: 2px solid #808080;
+      background: #d4d0c8;
+      padding: 3px 6px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    #output {
+      flex: 1;
+      background: black;
+      color: #00ff00;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      border: 2px inset #808080;
+      padding: 4px 6px;
+      max-height: 52px;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    /* ── Keyboard shortcut overlay ── */
+    #help-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #help-overlay.visible {
+      display: flex;
+    }
+
+    #help-box {
+      background: #d4d0c8;
+      border: 2px solid #fff;
+      border-right-color: #404040;
+      border-bottom-color: #404040;
+      padding: 12px 18px;
+      min-width: 340px;
+      max-width: 500px;
+    }
+
+    #help-box h2 {
+      background: #000080;
+      color: white;
+      margin: -12px -18px 10px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+
+    #help-box table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    #help-box td {
+      padding: 2px 6px;
+    }
+
+    #help-box td:first-child {
+      font-weight: bold;
+      color: #000080;
+      width: 110px;
+    }
+
+    #help-box tr:nth-child(even) td {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    #file-input {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
-<div id="app">
-  <div id="palette-area"></div>
+  <div id="app">
 
-  <div class="row" style="margin-top:10px;">
-    <span style="font-size:13px;">Tool:</span>
-    <button class="tool-btn active" id="tool-pencil" title="Paint single tiles">Pencil</button>
-    <button class="tool-btn" id="tool-fill" title="Flood fill connected area">Fill</button>
-    <button class="tool-btn" id="tool-rect-fill" title="Draw filled rectangle">Rect Fill</button>
-    <button class="tool-btn" id="tool-rect-border" title="Draw rectangle border only">Rect Border</button>
-    <button class="tool-btn" id="tool-erase" title="Erase to tile 0">Erase</button>
+    <!-- ══ TOOLBAR ══════════════════════════════════════════════════════════ -->
+    <div id="toolbar">
+      <div class="tb-group">
+        <span class="tb-label">File</span>
+        <button id="btn-import">Import</button>
+        <input type="file" id="file-input" accept=".dat,.txt">
+        <button id="btn-save">Save .dat</button>
+        <button id="copy-btn">Copy</button>
+      </div>
+
+      <div class="tb-group">
+        <span class="tb-label">Canvas</span>
+        <label>W</label><input class="num-input" type="number" id="inp-w" value="64" min="2" max="2048">
+        <label>H</label><input class="num-input" type="number" id="inp-h" value="48" min="2" max="2048">
+        <button id="btn-resize">Resize</button>
+        <button id="btn-fill-all">Fill All</button>
+        <button id="btn-clear">Clear</button>
+      </div>
+
+      <div class="tb-group">
+        <span class="tb-label">View</span>
+        <label>Zoom</label><input class="num-input" type="number" id="inp-zoom" value="16" min="4" max="64" step="4">
+        <button id="btn-zoom-fit">Fit</button>
+        <button id="btn-grid-toggle">Grid ✓</button>
+      </div>
+
+      <div class="tb-group">
+        <span class="tb-label">Edit</span>
+        <button id="btn-undo" disabled>Undo</button>
+        <button id="btn-redo" disabled>Redo</button>
+        <button id="btn-copy-sel" disabled>Copy Sel</button>
+        <button id="btn-paste" disabled>Paste</button>
+        <button id="btn-deselect" disabled>Deselect</button>
+        <button id="btn-sel-fill">Fill Sel</button>
+      </div>
+
+      <div class="tb-group">
+        <span class="tb-label">Tools</span>
+        <button class="tool-btn active" id="tool-pencil">✏ Pencil</button>
+        <button class="tool-btn" id="tool-fill">⬛ Fill</button>
+        <button class="tool-btn" id="tool-rect-fill">▪ Rect Fill</button>
+        <button class="tool-btn" id="tool-rect-border">▫ Rect Bdr</button>
+        <button class="tool-btn" id="tool-line">╱ Line</button>
+        <button class="tool-btn" id="tool-select">⬚ Select</button>
+        <button class="tool-btn" id="tool-eyedrop">🔬 Pick</button>
+        <button class="tool-btn" id="tool-erase">⌫ Erase</button>
+      </div>
+
+      <div class="tb-group">
+        <span class="tb-label">Brush</span>
+        <label>Size</label>
+        <input class="num-input" type="number" id="inp-brush" value="1" min="1" max="32">
+      </div>
+
+      <div class="tb-group">
+        <button id="btn-help">? Shortcuts</button>
+      </div>
+    </div>
+
+    <!-- ══ MAIN ════════════════════════════════════════════════════════════ -->
+    <div id="main">
+
+      <!-- ── Left panel ── -->
+      <div id="left-panel">
+        <div class="panel-header">▶ Tiles</div>
+        <div id="palette-wrap"></div>
+        <div class="panel-header">▶ Layers</div>
+        <div id="layer-list"></div>
+        <div style="padding:3px 6px;display:flex;gap:4px;flex-shrink:0;">
+          <button id="btn-add-layer" style="font-size:11px;padding:2px 6px;">+ Add</button>
+          <button id="btn-del-layer" style="font-size:11px;padding:2px 6px;">- Del</button>
+          <button id="btn-merge-down" style="font-size:11px;padding:2px 6px;">Merge↓</button>
+        </div>
+        <div class="panel-header">▶ Mini-map</div>
+        <div id="minimap-wrap">
+          <canvas id="minimap" width="168" height="112"></canvas>
+        </div>
+        <div class="panel-header">▶ Stamp Size</div>
+        <div id="stamp-section">
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span style="font-size:11px;">W</span><input class="num-input" type="number" id="stamp-w" value="1" min="1"
+              max="64" style="width:40px;">
+            <span style="font-size:11px;">H</span><input class="num-input" type="number" id="stamp-h" value="1" min="1"
+              max="64" style="width:40px;">
+          </div>
+          <div style="margin-top:4px;font-size:10px;color:#555;">Stamp paints a WxH block per click.</div>
+        </div>
+      </div>
+
+      <!-- ── Canvas area ── -->
+      <div id="canvas-area">
+        <div id="viewport">
+          <div id="canvas-container">
+            <canvas id="c"></canvas>
+          </div>
+          <div id="sel-overlay"></div>
+        </div>
+        <div id="output-area">
+          <span style="font-size:11px;white-space:nowrap;">Active layer .dat:</span>
+          <div id="output"></div>
+          <button id="copy-all-btn" style="font-size:11px;padding:2px 6px;white-space:nowrap;">Copy All Layers</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STATUS BAR ═══════════════════════════════════════════════════════ -->
+    <div id="statusbar">
+      <span>Pos: <span id="status-pos">—</span></span>
+      <span>Tile: <span id="status-tile">—</span></span>
+      <span>Map: <span id="status-size">—</span></span>
+      <span>Layer: <span id="status-layer">0</span></span>
+      <span id="status-msg">Space+drag or middle-drag to pan · Scroll to zoom</span>
+    </div>
   </div>
 
-  <div class="row">
-    <label>W</label><input class="size-input" type="number" id="inp-w" value="20" min="2" max="256">
-    <label>H</label><input class="size-input" type="number" id="inp-h" value="15" min="2" max="256">
-    <button class="ctrl-btn" id="btn-resize">Resize</button>
-    <span class="sep">|</span>
-    <button class="ctrl-btn" id="btn-fill-all">Fill all</button>
-    <button class="ctrl-btn" id="btn-clear">Clear</button>
-    <span class="sep">|</span>
-    <label>Zoom</label><input class="size-input" type="number" id="inp-zoom" value="32" min="8" max="64" step="4">
-    <span class="sep">|</span>
-    <button class="ctrl-btn" id="btn-import">Import .dat</button>
-    <input type="file" id="file-input" accept=".dat,.txt">
-    <button class="ctrl-btn" id="btn-save">Save .dat</button>
-    <button class="ctrl-btn" id="copy-btn">Copy .dat</button>
+  <!-- ══ HELP OVERLAY ════════════════════════════════════════════════════ -->
+  <div id="help-overlay">
+    <div id="help-box">
+      <h2>⌨ Keyboard Shortcuts</h2>
+      <table>
+        <tr>
+          <td>P</td>
+          <td>Pencil tool</td>
+        </tr>
+        <tr>
+          <td>F</td>
+          <td>Fill tool</td>
+        </tr>
+        <tr>
+          <td>R</td>
+          <td>Rect Fill tool</td>
+        </tr>
+        <tr>
+          <td>B</td>
+          <td>Rect Border tool</td>
+        </tr>
+        <tr>
+          <td>L</td>
+          <td>Line tool</td>
+        </tr>
+        <tr>
+          <td>S</td>
+          <td>Select tool</td>
+        </tr>
+        <tr>
+          <td>E / Del</td>
+          <td>Erase tool</td>
+        </tr>
+        <tr>
+          <td>I</td>
+          <td>Eyedropper (pick tile)</td>
+        </tr>
+        <tr>
+          <td>Ctrl+Z</td>
+          <td>Undo</td>
+        </tr>
+        <tr>
+          <td>Ctrl+Y / Ctrl+Shift+Z</td>
+          <td>Redo</td>
+        </tr>
+        <tr>
+          <td>Ctrl+C</td>
+          <td>Copy selection</td>
+        </tr>
+        <tr>
+          <td>Ctrl+V</td>
+          <td>Paste</td>
+        </tr>
+        <tr>
+          <td>Ctrl+A</td>
+          <td>Select all</td>
+        </tr>
+        <tr>
+          <td>Escape</td>
+          <td>Deselect</td>
+        </tr>
+        <tr>
+          <td>[ / ]</td>
+          <td>Dec/Inc brush size</td>
+        </tr>
+        <tr>
+          <td>+ / -</td>
+          <td>Zoom in/out</td>
+        </tr>
+        <tr>
+          <td>Space + drag</td>
+          <td>Pan canvas</td>
+        </tr>
+        <tr>
+          <td>Middle drag</td>
+          <td>Pan canvas</td>
+        </tr>
+        <tr>
+          <td>Scroll</td>
+          <td>Zoom</td>
+        </tr>
+        <tr>
+          <td>H / ?</td>
+          <td>Toggle this help</td>
+        </tr>
+      </table>
+      <div style="text-align:right;margin-top:8px;"><button
+          onclick="document.getElementById('help-overlay').classList.remove('visible')">Close</button></div>
+    </div>
   </div>
 
-  <div id="grid-wrap"><canvas id="c"></canvas></div>
-  <div id="output"></div>
-</div>
+  <div class="tile-tip" id="tile-tip"></div>
 
-<script>
-  const TILES = [
-    { id: 0,  name: 'GRASS',      color: '#64B450' },
-    { id: 1,  name: 'DIRT',       color: '#A0724A' },
-    { id: 2,  name: 'CONCRETE',   color: '#B0ACA4' },
-    { id: 3,  name: 'BRICK',      color: '#C89878' },
-    { id: 4,  name: 'FLOOR_WOOD', color: '#C89050' },
-    { id: 5,  name: 'STONE',      color: '#888780' },
-    { id: 6,  name: 'FLOOR_PVC',  color: '#D8D4C8' },
-    { id: 7,  name: 'DOOR',       color: '#7A4818' },
-    { id: 8,  name: 'SPAWN',      color: '#40E080' },
-    { id: 9,  name: 'VOID',       color: '#080808' },
-    { id: 10, name: 'END',        color: '#E0C000' },
-    { id: 11, name: 'BOOBYTRAP',  color: '#E04040' },
-    { id: 12, name: 'LAVA',       color: '#CC3300' },
-  ];
+  <script>
+    // ════════════════════════════════════════════════════════════════════════════
+    //  TILE DEFINITIONS
+    // ════════════════════════════════════════════════════════════════════════════
+    const TILES = [
+      { id: 0, name: 'GRASS', color: '#64B450' },
+      { id: 1, name: 'DIRT', color: '#A0724A' },
+      { id: 2, name: 'CONCRETE', color: '#B0ACA4' },
+      { id: 3, name: 'BRICK', color: '#C89878' },
+      { id: 4, name: 'FLOOR_WOOD', color: '#C89050' },
+      { id: 5, name: 'STONE', color: '#888780' },
+      { id: 6, name: 'FLOOR_PVC', color: '#D8D4C8' },
+      { id: 7, name: 'DOOR', color: '#7A4818' },
+      { id: 8, name: 'SPAWN', color: '#40E080' },
+      { id: 9, name: 'VOID', color: '#080808' },
+      { id: 10, name: 'END', color: '#E0C000' },
+      { id: 11, name: 'BOOBYTRAP', color: '#E04040' },
+      { id: 12, name: 'LAVA', color: '#CC3300' },
+    ];
 
-  let COLS = 20, ROWS = 15, CELL = 32;
-  let selectedTile = 0, currentTool = 'pencil';
-  let painting = false;
-  let rectStart = null;
-  let mapSnapshot = null;
-  let map = [];
+    // ════════════════════════════════════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════════════════════════════════════
+    let COLS = 64, ROWS = 48, CELL = 16;
+    let showGrid = true;
+    let selectedTile = 0, currentTool = 'pencil';
+    let brushSize = 1, stampW = 1, stampH = 1;
 
-  function initMap(w, h) {
-    map = [];
-    for (let r = 0; r < h; r++) map.push(new Array(w).fill(0));
-  }
+    // Layers: each layer is { name, visible, opacity, data: ROWS x COLS }
+    let layers = [];
+    let activeLayer = 0;
 
-  function resizeMap(nw, nh) {
-    const old = map; map = [];
-    for (let r = 0; r < nh; r++) {
-      const row = [];
-      for (let c = 0; c < nw; c++) row.push(old[r] && old[r][c] !== undefined ? old[r][c] : 0);
-      map.push(row);
+    // Panning
+    let panX = 0, panY = 0;
+    let panning = false, panStart = null;
+    let spaceDown = false;
+
+    // Drawing
+    let painting = false;
+    let rectStart = null, lineStart = null, selStart = null;
+    let mapSnapshot = null;  // snapshot before rect/line ops
+
+    // Selection
+    let selection = null; // { r0,c0,r1,c1 } or null
+    let clipboard = null; // { w,h, data:[] }
+    let pasteMode = false, pastePos = null;
+
+    // Undo / Redo
+    const MAX_HISTORY = 50;
+    let undoStack = [], redoStack = [];
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const minimap = document.getElementById('minimap');
+    const mmCtx = minimap.getContext('2d');
+    const container = document.getElementById('canvas-container');
+    const viewport = document.getElementById('viewport');
+    const selOverlay = document.getElementById('sel-overlay');
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  LAYER MANAGEMENT
+    // ════════════════════════════════════════════════════════════════════════════
+    function makeLayerData(w, h) {
+      return Array.from({ length: h }, () => new Array(w).fill(0));
     }
-    COLS = nw; ROWS = nh;
-    document.getElementById('inp-w').value = nw;
-    document.getElementById('inp-h').value = nh;
-  }
 
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-
-  function drawCell(r, c, tid) {
-    ctx.fillStyle = TILES[tid] ? TILES[tid].color : '#ff00ff';
-    ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 0.5;
-    ctx.strokeRect(c * CELL + 0.25, r * CELL + 0.25, CELL - 0.5, CELL - 0.5);
-  }
-
-  function draw() {
-    canvas.width = COLS * CELL; canvas.height = ROWS * CELL;
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) drawCell(r, c, map[r][c]);
-  }
-
-  function drawPreview(r0, c0, r1, c1) {
-    draw();
-    const minR = Math.min(r0, r1), maxR = Math.max(r0, r1), minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
-    ctx.fillStyle = TILES[currentTool === 'erase' ? 0 : selectedTile].color + '99';
-    if (currentTool === 'rect-fill') {
-      ctx.fillRect(minC * CELL, minR * CELL, (maxC - minC + 1) * CELL, (maxR - minR + 1) * CELL);
-    } else {
-      for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
-        if (r === minR || r === maxR || c === minC || c === maxC)
-          ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-      }
+    function addLayer(name) {
+      layers.push({ name: name || `Layer ${layers.length}`, visible: true, opacity: 100, data: makeLayerData(COLS, ROWS) });
+      renderLayerUI();
     }
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(minC * CELL, minR * CELL, (maxC - minC + 1) * CELL, (maxR - minR + 1) * CELL);
-  }
 
-  function getCell(e) {
-    const rect = canvas.getBoundingClientRect();
-    return { r: Math.floor((e.clientY - rect.top) / CELL), c: Math.floor((e.clientX - rect.left) / CELL) };
-  }
-
-  function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
-
-  function floodFill(sr, sc, target, replace) {
-    if (target === replace) return;
-    const stack = [[sr, sc]];
-    while (stack.length) {
-      const [r, c] = stack.pop();
-      if (!inBounds(r, c) || map[r][c] !== target) continue;
-      map[r][c] = replace;
-      stack.push([r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]);
+    function deleteLayer(idx) {
+      if (layers.length <= 1) return;
+      layers.splice(idx, 1);
+      if (activeLayer >= layers.length) activeLayer = layers.length - 1;
+      renderLayerUI();
     }
-  }
 
-  function applyRect(r0, c0, r1, c1, filled, tid) {
-    const minR = Math.min(r0, r1), maxR = Math.max(r0, r1), minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
-    for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
-      if (filled || r === minR || r === maxR || c === minC || c === maxC) map[r][c] = tid;
+    function mergeDown(idx) {
+      if (idx <= 0 || idx >= layers.length) return;
+      const top = layers[idx], bot = layers[idx - 1];
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (top.data[r][c] !== 0) bot.data[r][c] = top.data[r][c];
+      layers.splice(idx, 1);
+      if (activeLayer >= layers.length) activeLayer = layers.length - 1;
+      renderLayerUI();
     }
-  }
 
-  canvas.style.cursor = 'crosshair';
+    function resizeAllLayers(nw, nh) {
+      layers.forEach(l => {
+        const nd = makeLayerData(nw, nh);
+        for (let r = 0; r < Math.min(nh, ROWS); r++)
+          for (let c = 0; c < Math.min(nw, COLS); c++)
+            nd[r][c] = l.data[r] ? (l.data[r][c] !== undefined ? l.data[r][c] : 0) : 0;
+        l.data = nd;
+      });
+      COLS = nw; ROWS = nh;
+      document.getElementById('inp-w').value = nw;
+      document.getElementById('inp-h').value = nh;
+      selection = null;
+    }
 
-  canvas.addEventListener('mousedown', e => {
-    const { r, c } = getCell(e);
-    if (!inBounds(r, c)) return;
-    painting = true;
-    if (currentTool === 'pencil' || currentTool === 'erase') {
-      map[r][c] = currentTool === 'erase' ? 0 : selectedTile;
-      drawCell(r, c, map[r][c]);
-      updateOutput();
-    } else if (currentTool === 'fill') {
-      floodFill(r, c, map[r][c], selectedTile);
+    function renderLayerUI() {
+      const list = document.getElementById('layer-list');
+      list.innerHTML = '';
+      layers.forEach((l, i) => {
+        const row = document.createElement('div');
+        row.className = 'layer-row' + (i === activeLayer ? ' active' : '');
+        row.innerHTML = `
+      <input type="checkbox" ${l.visible ? 'checked' : ''} title="Visible">
+      <span class="layer-name" title="${l.name}">${l.name}</span>
+      <input class="layer-opacity" type="number" value="${l.opacity}" min="0" max="100" title="Opacity %">
+    `;
+        row.querySelector('input[type=checkbox]').onchange = e => { l.visible = e.target.checked; draw(); e.stopPropagation(); };
+        row.querySelector('.layer-opacity').onchange = e => { l.opacity = Math.max(0, Math.min(100, parseInt(e.target.value) || 100)); draw(); e.stopPropagation(); };
+        row.querySelector('.layer-opacity').onclick = e => e.stopPropagation();
+        row.onclick = () => { activeLayer = i; renderLayerUI(); updateStatusLayer(); updateOutput(); };
+        list.appendChild(row);
+      });
+      document.getElementById('status-layer').textContent = layers[activeLayer]?.name || '—';
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  UNDO / REDO
+    // ════════════════════════════════════════════════════════════════════════════
+    function snapshotLayers() {
+      return layers.map(l => ({ ...l, data: l.data.map(row => [...row]) }));
+    }
+
+    function pushUndo() {
+      undoStack.push(snapshotLayers());
+      if (undoStack.length > MAX_HISTORY) undoStack.shift();
+      redoStack = [];
+      updateUndoButtons();
+    }
+
+    function undo() {
+      if (!undoStack.length) return;
+      redoStack.push(snapshotLayers());
+      const snap = undoStack.pop();
+      restoreSnapshot(snap);
+      updateUndoButtons();
+    }
+
+    function redo() {
+      if (!redoStack.length) return;
+      undoStack.push(snapshotLayers());
+      const snap = redoStack.pop();
+      restoreSnapshot(snap);
+      updateUndoButtons();
+    }
+
+    function restoreSnapshot(snap) {
+      layers = snap;
+      if (activeLayer >= layers.length) activeLayer = layers.length - 1;
+      renderLayerUI();
       draw(); updateOutput();
-    } else {
-      rectStart = { r, c };
-      mapSnapshot = map.map(row => [...row]);
     }
-  });
 
-  canvas.addEventListener('mousemove', e => {
-    if (!painting) return;
-    const { r, c } = getCell(e);
-    if (!inBounds(r, c)) return;
-    if (currentTool === 'pencil' || currentTool === 'erase') {
-      const tid = currentTool === 'erase' ? 0 : selectedTile;
-      if (map[r][c] !== tid) { map[r][c] = tid; drawCell(r, c, tid); updateOutput(); }
-    } else if (rectStart) {
-      drawPreview(rectStart.r, rectStart.c, r, c);
+    function updateUndoButtons() {
+      document.getElementById('btn-undo').disabled = undoStack.length === 0;
+      document.getElementById('btn-redo').disabled = redoStack.length === 0;
     }
-  });
 
-  window.addEventListener('mouseup', e => {
-    if (!painting) return;
-    painting = false;
-    if (rectStart) {
-      const { r, c } = getCell(e);
-      const tid = currentTool === 'erase' ? 0 : selectedTile;
-      map = mapSnapshot.map(row => [...row]);
-      applyRect(rectStart.r, rectStart.c,
-        Math.max(0, Math.min(ROWS - 1, r)),
-        Math.max(0, Math.min(COLS - 1, c)),
-        currentTool === 'rect-fill', tid);
-      rectStart = null; mapSnapshot = null;
-      draw(); updateOutput();
+    // ════════════════════════════════════════════════════════════════════════════
+    //  DRAWING
+    // ════════════════════════════════════════════════════════════════════════════
+    function tileColor(id) { return TILES[id]?.color || '#ff00ff'; }
+
+    function drawCell(ctx, r, c, tid, cell) {
+      ctx.fillStyle = tileColor(tid);
+      ctx.fillRect(c * cell, r * cell, cell, cell);
     }
-  });
 
-  // ── .dat format: "WIDTH HEIGHT\ntile tile tile...\n..." ──────────────────
-  function buildDat() {
-    const rows = map.map(row => row.join(' ')).join('\n');
-    return `${COLS} ${ROWS}\n${rows}`;
-  }
+    function draw() {
+      canvas.width = COLS * CELL;
+      canvas.height = ROWS * CELL;
 
-  function updateOutput() {
-    document.getElementById('output').textContent = buildDat();
-  }
+      // Fill background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // ── Import .dat ──────────────────────────────────────────────────────────
-  document.getElementById('btn-import').onclick = () => {
-    document.getElementById('file-input').click();
-  };
+      // Draw layers bottom-up
+      layers.forEach(l => {
+        if (!l.visible) return;
+        ctx.save();
+        ctx.globalAlpha = l.opacity / 100;
+        for (let r = 0; r < ROWS; r++)
+          for (let c = 0; c < COLS; c++)
+            drawCell(ctx, r, c, l.data[r][c], CELL);
+        ctx.restore();
+      });
 
-  document.getElementById('file-input').onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const text = ev.target.result.trim();
-      const nums = text.split(/\s+/).map(Number);
-      if (nums.length < 2) { alert('Invalid .dat file'); return; }
-      const w = nums[0], h = nums[1];
-      if (isNaN(w) || isNaN(h) || w < 2 || h < 2 || w > 256 || h > 256) {
-        alert(`Invalid dimensions: ${w}x${h}`); return;
-      }
-      if (nums.length < 2 + w * h) {
-        alert(`Expected ${w * h} tiles, got ${nums.length - 2}`); return;
-      }
-      map = [];
-      for (let r = 0; r < h; r++) {
-        const row = [];
-        for (let c = 0; c < w; c++) {
-          const v = nums[2 + r * w + c];
-          row.push((isNaN(v) || v < 0 || v >= TILES.length) ? 0 : v);
+      // Grid
+      if (showGrid && CELL >= 6) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 0.5;
+        for (let c = 0; c <= COLS; c++) {
+          ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, ROWS * CELL); ctx.stroke();
         }
-        map.push(row);
+        for (let r = 0; r <= ROWS; r++) {
+          ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(COLS * CELL, r * CELL); ctx.stroke();
+        }
       }
-      COLS = w; ROWS = h;
-      document.getElementById('inp-w').value = w;
-      document.getElementById('inp-h').value = h;
+
+      // Selection marquee
+      updateSelOverlay();
+
+      // Paste preview
+      if (pasteMode && pastePos && clipboard) {
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        for (let dr = 0; dr < clipboard.h; dr++) {
+          for (let dc = 0; dc < clipboard.w; dc++) {
+            const r = pastePos.r + dr, c = pastePos.c + dc;
+            if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+            const tid = clipboard.data[dr][dc];
+            if (tid !== 0) drawCell(ctx, r, c, tid, CELL);
+          }
+        }
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(pastePos.c * CELL, pastePos.r * CELL, clipboard.w * CELL, clipboard.h * CELL);
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      drawMinimap();
+      document.getElementById('status-size').textContent = `${COLS}×${ROWS}`;
+    }
+
+    function drawPreviewRect(r0, c0, r1, c1, filled) {
+      draw();
+      const minR = Math.min(r0, r1), maxR = Math.max(r0, r1);
+      const minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
+      const tid = currentTool === 'erase' ? 0 : selectedTile;
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
+        if (filled || r === minR || r === maxR || c === minC || c === maxC)
+          drawCell(ctx, r, c, tid, CELL);
+      }
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(minC * CELL, minR * CELL, (maxC - minC + 1) * CELL, (maxR - minR + 1) * CELL);
+    }
+
+    function drawPreviewLine(r0, c0, r1, c1) {
+      draw();
+      const pts = linePoints(r0, c0, r1, c1);
+      const tid = currentTool === 'erase' ? 0 : selectedTile;
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      pts.forEach(([r, c]) => drawCell(ctx, r, c, tid, CELL));
+      ctx.restore();
+    }
+
+    function drawMinimap() {
+      const mw = minimap.width, mh = minimap.height;
+      mmCtx.clearRect(0, 0, mw, mh);
+
+      // Composite all layers
+      const cw = COLS, ch = ROWS;
+      const scaleX = mw / cw, scaleY = mh / ch;
+      const pw = Math.max(1, scaleX), ph = Math.max(1, scaleY);
+
+      layers.forEach(l => {
+        if (!l.visible) return;
+        mmCtx.save(); mmCtx.globalAlpha = l.opacity / 100;
+        for (let r = 0; r < ch; r++) for (let c = 0; c < cw; c++) {
+          const tid = l.data[r][c];
+          if (tid === 0) continue;
+          mmCtx.fillStyle = tileColor(tid);
+          mmCtx.fillRect(c * scaleX, r * scaleY, pw, ph);
+        }
+        mmCtx.restore();
+      });
+
+      // Viewport rect
+      const vw = viewport.clientWidth / CELL, vh = viewport.clientHeight / CELL;
+      const vrx = -panX / CELL, vry = -panY / CELL;
+      mmCtx.strokeStyle = '#ff0';
+      mmCtx.lineWidth = 1;
+      mmCtx.strokeRect(vrx * scaleX, vry * scaleY, vw * scaleX, vh * scaleY);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  SELECTION OVERLAY
+    // ════════════════════════════════════════════════════════════════════════════
+    function updateSelOverlay() {
+      if (!selection) { selOverlay.style.display = 'none'; return; }
+      const { r0, c0, r1, c1 } = normalSel();
+      const vpRect = viewport.getBoundingClientRect();
+      selOverlay.style.display = 'block';
+      selOverlay.style.left = (c0 * CELL + panX) + 'px';
+      selOverlay.style.top = (r0 * CELL + panY) + 'px';
+      selOverlay.style.width = ((c1 - c0 + 1) * CELL) + 'px';
+      selOverlay.style.height = ((r1 - r0 + 1) * CELL) + 'px';
+    }
+
+    function normalSel() {
+      if (!selection) return null;
+      return {
+        r0: Math.min(selection.r0, selection.r1), r1: Math.max(selection.r0, selection.r1),
+        c0: Math.min(selection.c0, selection.c1), c1: Math.max(selection.c0, selection.c1),
+      };
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  TILE OPERATIONS
+    // ════════════════════════════════════════════════════════════════════════════
+    function setTile(r, c, tid) {
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+      layers[activeLayer].data[r][c] = tid;
+    }
+
+    function getTile(r, c) {
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return 0;
+      return layers[activeLayer].data[r][c];
+    }
+
+    function paintStamp(r, c, tid) {
+      const sw = parseInt(document.getElementById('stamp-w').value) || 1;
+      const sh = parseInt(document.getElementById('stamp-h').value) || 1;
+      const bs = parseInt(document.getElementById('inp-brush').value) || 1;
+      const total = Math.max(sw, bs);
+      const totalH = Math.max(sh, bs);
+      for (let dr = 0; dr < totalH; dr++)
+        for (let dc = 0; dc < total; dc++)
+          setTile(r + dr, c + dc, tid);
+    }
+
+    function floodFill(sr, sc, target, replace) {
+      if (target === replace) return;
+      if (!inBounds(sr, sc)) return;
+      const stack = [[sr, sc]];
+      while (stack.length) {
+        const [r, c] = stack.pop();
+        if (!inBounds(r, c) || getTile(r, c) !== target) continue;
+        setTile(r, c, replace);
+        stack.push([r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]);
+      }
+    }
+
+    function applyRect(r0, c0, r1, c1, filled, tid) {
+      const minR = Math.min(r0, r1), maxR = Math.max(r0, r1);
+      const minC = Math.min(c0, c1), maxC = Math.max(c0, c1);
+      for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) {
+        if (filled || r === minR || r === maxR || c === minC || c === maxC) setTile(r, c, tid);
+      }
+    }
+
+    // Bresenham line
+    function linePoints(r0, c0, r1, c1) {
+      const pts = [];
+      let dr = Math.abs(r1 - r0), dc = Math.abs(c1 - c0);
+      let sr = r0 < r1 ? 1 : -1, sc = c0 < c1 ? 1 : -1;
+      let err = dc - dr;
+      let r = r0, c = c0;
+      for (; ;) {
+        pts.push([r, c]);
+        if (r === r1 && c === c1) break;
+        const e2 = 2 * err;
+        if (e2 > -dr) { err -= dr; c += sc; }
+        if (e2 < dc) { err += dc; r += sr; }
+      }
+      return pts;
+    }
+
+    function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  CLIPBOARD
+    // ════════════════════════════════════════════════════════════════════════════
+    function copySelection() {
+      if (!selection) return;
+      const { r0, c0, r1, c1 } = normalSel();
+      const w = c1 - c0 + 1, h = r1 - r0 + 1;
+      clipboard = { w, h, data: [] };
+      for (let r = r0; r <= r1; r++) {
+        const row = [];
+        for (let c = c0; c <= c1; c++) row.push(getTile(r, c));
+        clipboard.data.push(row);
+      }
+      document.getElementById('btn-paste').disabled = false;
+      setStatus(`Copied ${w}×${h} region`);
+    }
+
+    function startPaste() {
+      if (!clipboard) return;
+      pasteMode = true;
+      pastePos = { r: 0, c: 0 };
+      setStatus('Move mouse to position paste, click to place · Esc to cancel');
+      draw();
+    }
+
+    function commitPaste() {
+      if (!clipboard || !pastePos) return;
+      pushUndo();
+      for (let dr = 0; dr < clipboard.h; dr++)
+        for (let dc = 0; dc < clipboard.w; dc++) {
+          const r = pastePos.r + dr, c = pastePos.c + dc;
+          if (!inBounds(r, c)) continue;
+          const tid = clipboard.data[dr][dc];
+          if (tid !== 0) setTile(r, c, tid);
+        }
+      pasteMode = false;
+      draw(); updateOutput();
+    }
+
+    // Fill selection with current tile
+    function fillSelection() {
+      if (!selection) { // fill whole map
+        pushUndo();
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) setTile(r, c, selectedTile);
+        draw(); updateOutput(); return;
+      }
+      pushUndo();
+      const { r0, c0, r1, c1 } = normalSel();
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) setTile(r, c, selectedTile);
+      draw(); updateOutput();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  CANVAS EVENTS
+    // ════════════════════════════════════════════════════════════════════════════
+    function canvasPos(e) {
+      const rect = viewport.getBoundingClientRect();
+      const x = e.clientX - rect.left - panX;
+      const y = e.clientY - rect.top - panY;
+      return { r: Math.floor(y / CELL), c: Math.floor(x / CELL) };
+    }
+
+    viewport.addEventListener('mousedown', e => {
+      // Middle mouse or space = pan
+      if (e.button === 1 || (e.button === 0 && spaceDown)) {
+        panning = true;
+        panStart = { x: e.clientX - panX, y: e.clientY - panY };
+        viewport.style.cursor = 'grabbing';
+        e.preventDefault(); return;
+      }
+      if (e.button !== 0) return;
+
+      const { r, c } = canvasPos(e);
+
+      if (pasteMode) { commitPaste(); return; }
+
+      if (currentTool === 'eyedrop') {
+        if (inBounds(r, c)) {
+          selectedTile = getTile(r, c);
+          selectTileBtn(selectedTile);
+          setStatus(`Picked: ${TILES[selectedTile]?.name}`);
+        }
+        return;
+      }
+
+      painting = true;
+
+      if (currentTool === 'pencil' || currentTool === 'erase') {
+        pushUndo();
+        const tid = currentTool === 'erase' ? 0 : selectedTile;
+        paintStamp(r, c, tid);
+        draw(); updateOutput();
+      } else if (currentTool === 'fill') {
+        pushUndo();
+        floodFill(r, c, getTile(r, c), selectedTile);
+        draw(); updateOutput();
+      } else if (currentTool === 'rect-fill' || currentTool === 'rect-border' || currentTool === 'line') {
+        rectStart = { r, c }; lineStart = { r, c };
+        mapSnapshot = layers[activeLayer].data.map(row => [...row]);
+      } else if (currentTool === 'select') {
+        selStart = { r, c };
+        selection = { r0: r, c0: c, r1: r, c1: c };
+        document.getElementById('btn-copy-sel').disabled = false;
+        document.getElementById('btn-deselect').disabled = false;
+      }
+    });
+
+    viewport.addEventListener('mousemove', e => {
+      // Pan
+      if (panning) {
+        panX = e.clientX - panStart.x;
+        panY = e.clientY - panStart.y;
+        clampPan();
+        applyTransform();
+        drawMinimap();
+        return;
+      }
+
+      const { r, c } = canvasPos(e);
+      updateStatusPos(r, c);
+
+      if (pasteMode && clipboard) {
+        pastePos = { r: Math.max(0, r), c: Math.max(0, c) };
+        draw(); return;
+      }
+
+      if (!painting) return;
+
+      if (currentTool === 'pencil' || currentTool === 'erase') {
+        const tid = currentTool === 'erase' ? 0 : selectedTile;
+        paintStamp(r, c, tid);
+        draw(); updateOutput();
+      } else if ((currentTool === 'rect-fill' || currentTool === 'rect-border') && rectStart) {
+        drawPreviewRect(rectStart.r, rectStart.c, r, c, currentTool === 'rect-fill');
+      } else if (currentTool === 'line' && lineStart) {
+        drawPreviewLine(lineStart.r, lineStart.c, r, c);
+      } else if (currentTool === 'select' && selStart) {
+        selection.r1 = r; selection.c1 = c;
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', e => {
+      if (panning) {
+        panning = false;
+        viewport.style.cursor = spaceDown ? 'grab' : getCursor();
+        return;
+      }
+      if (!painting) return;
+      painting = false;
+
+      const { r, c } = canvasPos(e);
+      const tid = currentTool === 'erase' ? 0 : selectedTile;
+
+      if ((currentTool === 'rect-fill' || currentTool === 'rect-border') && rectStart) {
+        pushUndo();
+        layers[activeLayer].data = mapSnapshot;
+        applyRect(rectStart.r, rectStart.c,
+          Math.max(0, Math.min(ROWS - 1, r)), Math.max(0, Math.min(COLS - 1, c)),
+          currentTool === 'rect-fill', tid);
+        rectStart = null; mapSnapshot = null;
+        draw(); updateOutput();
+      } else if (currentTool === 'line' && lineStart) {
+        pushUndo();
+        layers[activeLayer].data = mapSnapshot;
+        linePoints(lineStart.r, lineStart.c, r, c).forEach(([lr, lc]) => setTile(lr, lc, tid));
+        lineStart = null; mapSnapshot = null;
+        draw(); updateOutput();
+      } else if (currentTool === 'select') {
+        selStart = null;
+        draw();
+      }
+    });
+
+    // Zoom via scroll
+    viewport.addEventListener('wheel', e => {
+      e.preventDefault();
+      const steps = e.deltaY > 0 ? -1 : 1;
+      const newCell = Math.min(64, Math.max(4, CELL + steps * 4));
+      if (newCell === CELL) return;
+
+      // Zoom around cursor
+      const rect = viewport.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const worldX = (mx - panX) / CELL, worldY = (my - panY) / CELL;
+      CELL = newCell;
+      panX = mx - worldX * CELL;
+      panY = my - worldY * CELL;
+      clampPan();
+      document.getElementById('inp-zoom').value = CELL;
+      applyTransform();
+      draw();
+    }, { passive: false });
+
+    // Minimap click-to-navigate
+    minimap.addEventListener('click', e => {
+      const rect = minimap.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const fr = my / minimap.height, fc = mx / minimap.width;
+      const tileR = fr * ROWS, tileC = fc * COLS;
+      const vw = viewport.clientWidth, vh = viewport.clientHeight;
+      panX = -(tileC * CELL) + vw / 2;
+      panY = -(tileR * CELL) + vh / 2;
+      clampPan();
+      applyTransform();
+      draw();
+    });
+
+    function clampPan() {
+      // Soft clamp — allow some overscroll but keep world reachable
+      const minX = -(COLS * CELL) + 80, minY = -(ROWS * CELL) + 80;
+      const maxX = viewport.clientWidth - 80, maxY = viewport.clientHeight - 80;
+      panX = Math.max(minX, Math.min(maxX, panX));
+      panY = Math.max(minY, Math.min(maxY, panY));
+    }
+
+    function applyTransform() {
+      container.style.transform = `translate(${panX}px,${panY}px)`;
+      updateSelOverlay();
+    }
+
+    function getCursor() {
+      if (currentTool === 'erase') return 'cell';
+      if (currentTool === 'eyedrop') return 'crosshair';
+      if (currentTool === 'select') return 'default';
+      return 'crosshair';
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  STATUS BAR
+    // ════════════════════════════════════════════════════════════════════════════
+    function updateStatusPos(r, c) {
+      document.getElementById('status-pos').textContent = `${c},${r}`;
+      document.getElementById('status-tile').textContent = inBounds(r, c)
+        ? `${TILES[getTile(r, c)]?.name || '?'} (${getTile(r, c)})` : '—';
+    }
+    function updateStatusLayer() {
+      document.getElementById('status-layer').textContent = layers[activeLayer]?.name || '—';
+    }
+    function setStatus(msg) {
+      document.getElementById('status-msg').textContent = msg;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  OUTPUT
+    // ════════════════════════════════════════════════════════════════════════════
+    function buildDat(layerIdx) {
+      const l = layers[layerIdx];
+      const rows = l.data.map(row => row.join(' ')).join('\n');
+      return `${COLS} ${ROWS}\n${rows}`;
+    }
+
+    function buildAllDat() {
+      return layers.map((l, i) => `# Layer ${i}: ${l.name}\n` + buildDat(i)).join('\n\n');
+    }
+
+    function updateOutput() {
+      document.getElementById('output').textContent = buildDat(activeLayer);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  TOOLBAR WIRING
+    // ════════════════════════════════════════════════════════════════════════════
+    // File
+    document.getElementById('btn-import').onclick = () => document.getElementById('file-input').click();
+    document.getElementById('file-input').onchange = e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const text = ev.target.result.trim();
+        const nums = text.split(/\s+/).map(Number);
+        if (nums.length < 2) { alert('Invalid .dat'); return; }
+        const w = nums[0], h = nums[1];
+        if (isNaN(w) || isNaN(h) || w < 2 || h < 2 || w > 2048 || h > 2048) { alert(`Invalid dims: ${w}x${h}`); return; }
+        if (nums.length < 2 + w * h) { alert(`Expected ${w * h} tiles, got ${nums.length - 2}`); return; }
+        pushUndo();
+        COLS = w; ROWS = h;
+        document.getElementById('inp-w').value = w;
+        document.getElementById('inp-h').value = h;
+        layers[activeLayer].data = [];
+        for (let r = 0; r < h; r++) {
+          const row = [];
+          for (let c = 0; c < w; c++) { const v = nums[2 + r * w + c]; row.push((isNaN(v) || v < 0 || v >= TILES.length) ? 0 : v); }
+          layers[activeLayer].data.push(row);
+        }
+        draw(); updateOutput();
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    };
+
+    document.getElementById('btn-save').onclick = () => {
+      const blob = new Blob([buildDat(activeLayer)], { type: 'text/plain' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${layers[activeLayer].name}.dat`; a.click(); URL.revokeObjectURL(a.href);
+    };
+    document.getElementById('copy-btn').onclick = () => {
+      navigator.clipboard.writeText(buildDat(activeLayer)).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500);
+      });
+    };
+    document.getElementById('copy-all-btn').onclick = () => {
+      navigator.clipboard.writeText(buildAllDat()).then(() => setStatus('All layers copied!'));
+    };
+
+    // Canvas controls
+    document.getElementById('btn-resize').onclick = () => {
+      const w = Math.min(2048, Math.max(2, parseInt(document.getElementById('inp-w').value) || 64));
+      const h = Math.min(2048, Math.max(2, parseInt(document.getElementById('inp-h').value) || 48));
+      pushUndo(); resizeAllLayers(w, h); draw(); updateOutput();
+    };
+    document.getElementById('btn-fill-all').onclick = fillSelection;
+    document.getElementById('btn-clear').onclick = () => {
+      pushUndo();
+      layers[activeLayer].data = makeLayerData(COLS, ROWS);
       draw(); updateOutput();
     };
-    reader.readAsText(file);
-    e.target.value = ''; // allow re-importing same file
-  };
 
-  // ── Save .dat ────────────────────────────────────────────────────────────
-  document.getElementById('btn-save').onclick = () => {
-    const blob = new Blob([buildDat()], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'level.dat';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
+    // View
+    document.getElementById('inp-zoom').oninput = e => {
+      CELL = Math.min(64, Math.max(4, parseInt(e.target.value) || 16));
+      applyTransform(); draw();
+    };
+    document.getElementById('btn-zoom-fit').onclick = () => {
+      const fitX = viewport.clientWidth / COLS;
+      const fitY = viewport.clientHeight / ROWS;
+      CELL = Math.max(4, Math.min(64, Math.floor(Math.min(fitX, fitY))));
+      panX = Math.max(0, (viewport.clientWidth - COLS * CELL) / 2);
+      panY = Math.max(0, (viewport.clientHeight - ROWS * CELL) / 2);
+      document.getElementById('inp-zoom').value = CELL;
+      applyTransform(); draw();
+    };
+    document.getElementById('btn-grid-toggle').onclick = function () {
+      showGrid = !showGrid;
+      this.textContent = showGrid ? 'Grid ✓' : 'Grid ✗';
+      draw();
+    };
 
-  // ── Copy .dat ────────────────────────────────────────────────────────────
-  document.getElementById('copy-btn').onclick = () => {
-    navigator.clipboard.writeText(buildDat()).then(() => {
-      const btn = document.getElementById('copy-btn');
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = 'Copy .dat', 1500);
+    // Edit
+    document.getElementById('btn-undo').onclick = undo;
+    document.getElementById('btn-redo').onclick = redo;
+    document.getElementById('btn-copy-sel').onclick = copySelection;
+    document.getElementById('btn-paste').onclick = startPaste;
+    document.getElementById('btn-deselect').onclick = () => {
+      selection = null; selOverlay.style.display = 'none';
+      document.getElementById('btn-copy-sel').disabled = true;
+      document.getElementById('btn-deselect').disabled = true;
+      draw();
+    };
+    document.getElementById('btn-sel-fill').onclick = fillSelection;
+
+    // Layers
+    document.getElementById('btn-add-layer').onclick = () => { pushUndo(); addLayer(); draw(); updateOutput(); };
+    document.getElementById('btn-del-layer').onclick = () => { pushUndo(); deleteLayer(activeLayer); draw(); updateOutput(); };
+    document.getElementById('btn-merge-down').onclick = () => { pushUndo(); mergeDown(activeLayer); draw(); updateOutput(); };
+
+    // Tools
+    const toolIds = ['pencil', 'fill', 'rect-fill', 'rect-border', 'line', 'select', 'eyedrop', 'erase'];
+    toolIds.forEach(t => {
+      document.getElementById('tool-' + t).onclick = () => setTool(t);
     });
-  };
 
-  // ── Tool buttons ─────────────────────────────────────────────────────────
-  const tools = ['pencil', 'fill', 'rect-fill', 'rect-border', 'erase'];
-  tools.forEach(t => {
-    document.getElementById('tool-' + t).onclick = () => {
+    function setTool(t) {
       currentTool = t;
-      tools.forEach(x => document.getElementById('tool-' + x).classList.remove('active'));
+      toolIds.forEach(x => document.getElementById('tool-' + x).classList.remove('active'));
       document.getElementById('tool-' + t).classList.add('active');
-      canvas.style.cursor = t === 'erase' ? 'cell' : 'crosshair';
+      viewport.style.cursor = getCursor();
+      if (t !== 'select') { /* keep selection */ }
+      setStatus('');
+    }
+
+    // Help
+    document.getElementById('btn-help').onclick = () => document.getElementById('help-overlay').classList.toggle('visible');
+    document.getElementById('help-overlay').onclick = e => {
+      if (e.target === document.getElementById('help-overlay')) document.getElementById('help-overlay').classList.remove('visible');
     };
-  });
 
-  // ── Grid controls ─────────────────────────────────────────────────────────
-  document.getElementById('btn-resize').onclick = () => {
-    const w = Math.min(256, Math.max(2, parseInt(document.getElementById('inp-w').value) || 20));
-    const h = Math.min(256, Math.max(2, parseInt(document.getElementById('inp-h').value) || 15));
-    resizeMap(w, h); draw(); updateOutput();
-  };
-  document.getElementById('btn-fill-all').onclick = () => {
-    for (let r = 0; r < ROWS; r++) map[r].fill(selectedTile);
-    draw(); updateOutput();
-  };
-  document.getElementById('btn-clear').onclick = () => {
-    for (let r = 0; r < ROWS; r++) map[r].fill(0);
-    draw(); updateOutput();
-  };
-  document.getElementById('inp-zoom').oninput = e => {
-    CELL = Math.min(64, Math.max(8, parseInt(e.target.value) || 32));
-    draw();
-  };
+    // ════════════════════════════════════════════════════════════════════════════
+    //  PALETTE
+    // ════════════════════════════════════════════════════════════════════════════
+    const paletteWrap = document.getElementById('palette-wrap');
+    const tileTip = document.getElementById('tile-tip');
 
-  // ── Palette ───────────────────────────────────────────────────────────────
-  const pa = document.getElementById('palette-area');
-  const lbl = document.createElement('div'); lbl.className = 'group-label'; lbl.textContent = 'Tiles'; pa.appendChild(lbl);
-  const wrap = document.createElement('div'); wrap.className = 'palette-wrap'; pa.appendChild(wrap);
-  TILES.forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = 'tile-btn' + (t.id === 0 ? ' selected' : '');
-    btn.style.background = t.color;
-    btn.innerHTML = `<span class="tip">${t.name}</span>`;
-    btn.onclick = () => {
-      selectedTile = t.id;
+    TILES.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'tile-btn' + (t.id === 0 ? ' selected' : '');
+      btn.style.background = t.color;
+      btn.dataset.id = t.id;
+      btn.addEventListener('mouseenter', e => {
+        tileTip.style.display = 'block';
+        tileTip.textContent = `${t.id}: ${t.name}`;
+        tileTip.style.left = (e.clientX + 10) + 'px';
+        tileTip.style.top = (e.clientY - 24) + 'px';
+      });
+      btn.addEventListener('mouseleave', () => tileTip.style.display = 'none');
+      btn.onclick = () => {
+        selectedTile = t.id;
+        selectTileBtn(t.id);
+        if (currentTool === 'eyedrop') setTool('pencil');
+      };
+      paletteWrap.appendChild(btn);
+    });
+
+    function selectTileBtn(id) {
       document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    };
-    wrap.appendChild(btn);
-  });
+      const btn = paletteWrap.querySelector(`[data-id="${id}"]`);
+      if (btn) btn.classList.add('selected');
+    }
 
-  initMap(COLS, ROWS); draw(); updateOutput();
-</script>
+    // ════════════════════════════════════════════════════════════════════════════
+    //  KEYBOARD SHORTCUTS
+    // ════════════════════════════════════════════════════════════════════════════
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+
+      if (e.key === ' ') { spaceDown = true; if (!panning) viewport.style.cursor = 'grab'; e.preventDefault(); return; }
+
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z') { if (e.shiftKey) redo(); else undo(); e.preventDefault(); }
+        if (e.key === 'y') { redo(); e.preventDefault(); }
+        if (e.key === 'c') { copySelection(); e.preventDefault(); }
+        if (e.key === 'v') { startPaste(); e.preventDefault(); }
+        if (e.key === 'a') {
+          selection = { r0: 0, c0: 0, r1: ROWS - 1, c1: COLS - 1 };
+          document.getElementById('btn-copy-sel').disabled = false;
+          document.getElementById('btn-deselect').disabled = false;
+          draw(); e.preventDefault();
+        }
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case 'p': setTool('pencil'); break;
+        case 'f': setTool('fill'); break;
+        case 'r': setTool('rect-fill'); break;
+        case 'b': setTool('rect-border'); break;
+        case 'l': setTool('line'); break;
+        case 's': setTool('select'); break;
+        case 'i': setTool('eyedrop'); break;
+        case 'e': case 'delete': setTool('erase'); break;
+        case '[': {
+          brushSize = Math.max(1, brushSize - 1);
+          document.getElementById('inp-brush').value = brushSize;
+          break;
+        }
+        case ']': {
+          brushSize = Math.min(32, brushSize + 1);
+          document.getElementById('inp-brush').value = brushSize;
+          break;
+        }
+        case '+': case '=': {
+          CELL = Math.min(64, CELL + 4);
+          document.getElementById('inp-zoom').value = CELL;
+          applyTransform(); draw(); break;
+        }
+        case '-': {
+          CELL = Math.max(4, CELL - 4);
+          document.getElementById('inp-zoom').value = CELL;
+          applyTransform(); draw(); break;
+        }
+        case 'escape':
+          if (pasteMode) { pasteMode = false; draw(); }
+          else { selection = null; selOverlay.style.display = 'none'; document.getElementById('btn-copy-sel').disabled = true; document.getElementById('btn-deselect').disabled = true; draw(); }
+          break;
+        case 'h': case '?':
+          document.getElementById('help-overlay').classList.toggle('visible'); break;
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (e.key === ' ') { spaceDown = false; if (!panning) viewport.style.cursor = getCursor(); }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════════════════════════════════
+    addLayer('Background');
+    addLayer('Main');
+    activeLayer = 1;
+    renderLayerUI();
+    applyTransform();
+    draw();
+    updateOutput();
+
+    // Center map on load
+    setTimeout(() => {
+      const vw = viewport.clientWidth, vh = viewport.clientHeight;
+      panX = Math.max(0, (vw - COLS * CELL) / 2);
+      panY = Math.max(0, (vh - ROWS * CELL) / 2);
+      applyTransform(); draw();
+    }, 50);
+  </script>
 </body>
+
 </html>

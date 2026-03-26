@@ -42,6 +42,8 @@ static void DrawHUD(void)
     int tileX = (int)(playerPosition.x / TILE_SIZE);
     int tileY = (int)(playerPosition.y / TILE_SIZE);
     DrawText(TextFormat("Tile: %d, %d", tileX, tileY), 10, 45, 16, GRAY);
+    DrawText(TextFormat("Map: %dx%d", MAP_WIDTH, MAP_HEIGHT), 10, 60, 16, GRAY);
+    DrawText(TextFormat("Tile[0][0]: %d", map[0][0]), 10, 75, 16, GRAY);
 }
 
 int main(void)

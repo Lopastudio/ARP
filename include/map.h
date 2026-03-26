@@ -3,7 +3,7 @@
 
 #include "raylib.h"
 
-#define MAX_MAP 256
+#define MAX_MAP 4096
 #define TILE_SIZE 32
 
 typedef enum
